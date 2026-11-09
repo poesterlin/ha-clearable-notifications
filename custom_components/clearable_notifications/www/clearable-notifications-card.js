@@ -32,6 +32,7 @@
     en: {
       read: "Mark as read",
       read_all: "Mark all as read",
+      acknowledge_all: "Acknowledge all",
       acknowledge: "Acknowledge",
       clear: "Clear",
       acknowledged: "Read",
@@ -48,6 +49,7 @@
     de: {
       read: "Gelesen",
       read_all: "Alle gelesen",
+      acknowledge_all: "Alle bestätigen",
       acknowledge: "Bestätigen",
       clear: "Entfernen",
       acknowledged: "Gelesen",
@@ -286,7 +288,7 @@
       const top = [...active].sort((x, y) => RANK[y.severity] - RANK[x.severity])[0]?.severity;
       const readAll = cfg.show_actions && unread.length > 1
         ? `<button class="text-btn" data-action="read-all" ${this._busy ? "disabled" : ""}>
-             <ha-icon icon="mdi:check-all"></ha-icon><span>${esc(large ? t.read_all : t.acknowledge)}</span>
+             <ha-icon icon="mdi:check-all"></ha-icon><span>${esc(large ? t.read_all : t.acknowledge_all)}</span>
            </button>`
         : "";
       // Without a title the header only appears when it has a button to show.

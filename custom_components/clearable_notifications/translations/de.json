@@ -43,7 +43,7 @@
             "name": "Wird für den Entitätsnamen verwendet, z. B. \"Gefrierschrank zu warm\".",
             "severity": "Kann bei jeder Aktivierung überschrieben werden.",
             "title": "Optional. Unterstützt Templates.",
-            "message": "Unterstützt Templates, z. B. `Freezer at {{ states('sensor.freezer_temperature') }} °C`. Der Aktion übergebene Variablen sind ebenfalls verfügbar.",
+            "message": "Unterstützt Templates, z. B. `Gefrierschrank bei {{ states('sensor.freezer_temperature') }} °C`. Der Aktion übergebene Variablen sind ebenfalls verfügbar.",
             "icon": "Optional. Standardmäßig ein zum Schweregrad passendes Symbol.",
             "auto_clear_after": "Optional. Wird automatisch entfernt, so lange nach der letzten Aktivierung. Leer verwendet den Hub-Standard für den Schweregrad (unter Konfigurieren festgelegt); 0 entfernt nie automatisch.",
             "persistent_notification": "Spiegelt die Benachrichtigung in die Glocke der Seitenleiste. Verwerfen dort bestätigt sie."
@@ -64,7 +64,7 @@
             "name": "Wird für den Entitätsnamen verwendet, z. B. \"Gefrierschrank zu warm\".",
             "severity": "Kann bei jeder Aktivierung überschrieben werden.",
             "title": "Optional. Unterstützt Templates.",
-            "message": "Unterstützt Templates, z. B. `Freezer at {{ states('sensor.freezer_temperature') }} °C`. Der Aktion übergebene Variablen sind ebenfalls verfügbar.",
+            "message": "Unterstützt Templates, z. B. `Gefrierschrank bei {{ states('sensor.freezer_temperature') }} °C`. Der Aktion übergebene Variablen sind ebenfalls verfügbar.",
             "icon": "Optional. Standardmäßig ein zum Schweregrad passendes Symbol.",
             "auto_clear_after": "Optional. Wird automatisch entfernt, so lange nach der letzten Aktivierung. Leer verwendet den Hub-Standard für den Schweregrad (unter Konfigurieren festgelegt); 0 entfernt nie automatisch.",
             "persistent_notification": "Spiegelt die Benachrichtigung in die Glocke der Seitenleiste. Verwerfen dort bestätigt sie."
