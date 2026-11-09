@@ -1,0 +1,35 @@
+name: Release
+
+on:
+  release:
+    types: [published]
+
+permissions: {}
+
+jobs:
+  release:
+    name: Build and upload release zip
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set version in manifest.json
+        env:
+          TAG: ${{ github.event.release.tag_name }}
+        run: |
+          version="${TAG#v}"
+          manifest="custom_components/clearable_notifications/manifest.json"
+          jq --arg v "$version" '.version = $v' "$manifest" > manifest.tmp
+          mv manifest.tmp "$manifest"
+
+      - name: Create zip
+        run: |
+          cd custom_components/clearable_notifications
+          zip -r ../../clearable_notifications.zip . -x "*/__pycache__/*" "__pycache__/*"
+
+      - name: Upload to release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: clearable_notifications.zip
