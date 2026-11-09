@@ -258,7 +258,7 @@ With `hide_when_empty` the heading disappears together with the notifications, s
 - per notification, a large severity-tinted icon tile with a big title and message, plus the time and the auto-clear countdown;
 - a full-width read button below each unread notification. With `read_action: auto` (default) it clears info notifications and acknowledges warning and critical ones;
 - a **Mark all as read** button when two or more notifications are unread;
-- read notifications are dimmed and carry a "Read" marker.
+- read notifications are dimmed, carry a "Read" marker and get a **Dismiss** button that clears them.
 
 `layout: compact` is the previous list in a regular card, with acknowledge and clear icon buttons per notification.
 

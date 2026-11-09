@@ -2,7 +2,7 @@
 (() => {
   const DOMAIN = "clearable_notifications";
   const CARD_TYPE = "clearable-notifications-card";
-  const VERSION = "0.2.0";
+  const VERSION = "0.2.1";
   const SEVERITIES = ["info", "warning", "critical"];
   const RANK = { info: 1, warning: 2, critical: 3 };
   const SEVERITY_COLOR = {
@@ -35,6 +35,7 @@
       acknowledge_all: "Acknowledge all",
       acknowledge: "Acknowledge",
       clear: "Clear",
+      dismiss: "Dismiss",
       acknowledged: "Read",
       empty: "No notifications",
       recently_cleared: "Recently cleared",
@@ -52,6 +53,7 @@
       acknowledge_all: "Alle bestätigen",
       acknowledge: "Bestätigen",
       clear: "Entfernen",
+      dismiss: "Entfernen",
       acknowledged: "Gelesen",
       empty: "Keine Benachrichtigungen",
       recently_cleared: "Zuletzt entfernt",
@@ -345,11 +347,18 @@
       const meta = this._meta(item, lang, t);
       const classes = ["item", item.severity, item.active ? "active" : "cleared", item.acknowledged ? "acked" : "unacked"];
       const busy = this._busy === item.entityId || this._busy === "all";
-      const button = cfg.show_actions && item.active && !item.acknowledged
-        ? `<button class="tile-btn" data-action="read" data-entity="${esc(item.entityId)}" data-severity="${item.severity}" ${busy ? "disabled" : ""}>
-             <ha-icon icon="${esc(cfg.read_icon || DEFAULTS.read_icon)}"></ha-icon><span>${esc(t.read)}</span>
-           </button>`
-        : "";
+      // Unread: "read" (clears or acknowledges per read_action). Already read but
+      // still active: offer to dismiss (clear) it so it can always be removed.
+      let button = "";
+      if (cfg.show_actions && item.active) {
+        button = item.acknowledged
+          ? `<button class="tile-btn" data-action="clear" data-entity="${esc(item.entityId)}" ${busy ? "disabled" : ""}>
+               <ha-icon icon="mdi:close"></ha-icon><span>${esc(t.dismiss)}</span>
+             </button>`
+          : `<button class="tile-btn" data-action="read" data-entity="${esc(item.entityId)}" data-severity="${item.severity}" ${busy ? "disabled" : ""}>
+               <ha-icon icon="${esc(cfg.read_icon || DEFAULTS.read_icon)}"></ha-icon><span>${esc(t.read)}</span>
+             </button>`;
+      }
       return `<div class="${classes.join(" ")}" style="--sev:${SEVERITY_COLOR[item.severity]}">
         <div class="hero" data-action="more-info" data-entity="${esc(item.entityId)}" tabindex="0" role="button"
              aria-label="${esc(t[item.severity])}: ${esc(heading)}">
