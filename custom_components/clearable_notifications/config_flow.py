@@ -11,6 +11,7 @@ from homeassistant.config_entries import (
     ConfigFlow,
     ConfigFlowResult,
     ConfigSubentryFlow,
+    OptionsFlow,
     SubentryFlowResult,
 )
 from homeassistant.const import CONF_NAME
@@ -31,11 +32,13 @@ from homeassistant.helpers.template import Template
 
 from .const import (
     CONF_AUTO_CLEAR_AFTER,
+    CONF_AUTO_CLEAR_DEFAULTS,
     CONF_ICON,
     CONF_MESSAGE,
     CONF_PERSISTENT_NOTIFICATION,
     CONF_SEVERITY,
     CONF_TITLE,
+    DEFAULT_HUB_OPTIONS,
     DOMAIN,
     SEVERITIES,
     SEVERITY_INFO,
@@ -62,6 +65,22 @@ NOTIFICATION_SCHEMA = vol.Schema(
     }
 )
 
+HUB_SCHEMA = vol.Schema(
+    {
+        vol.Optional(key): DurationSelector(DurationSelectorConfig(enable_day=True))
+        for key in CONF_AUTO_CLEAR_DEFAULTS.values()
+    }
+)
+
+
+def _hub_options(user_input: dict[str, Any]) -> dict[str, Any]:
+    """Keep only non-zero durations; a missing key means "never"."""
+    return {
+        key: value
+        for key, value in user_input.items()
+        if key in CONF_AUTO_CLEAR_DEFAULTS.values() and any(value.values())
+    }
+
 
 class ClearableNotificationsConfigFlow(ConfigFlow, domain=DOMAIN):
     """Create the single notifications hub."""
@@ -71,10 +90,23 @@ class ClearableNotificationsConfigFlow(ConfigFlow, domain=DOMAIN):
     async def async_step_user(
         self, user_input: dict[str, Any] | None = None
     ) -> ConfigFlowResult:
-        """Confirm creating the hub; notifications are added afterwards."""
+        """Create the hub and pick per-severity auto-clear defaults."""
         if user_input is not None:
-            return self.async_create_entry(title="Notifications", data={})
-        return self.async_show_form(step_id="user")
+            return self.async_create_entry(
+                title="Notifications", data={}, options=_hub_options(user_input)
+            )
+        return self.async_show_form(
+            step_id="user",
+            data_schema=self.add_suggested_values_to_schema(
+                HUB_SCHEMA, DEFAULT_HUB_OPTIONS
+            ),
+        )
+
+    @staticmethod
+    @callback
+    def async_get_options_flow(config_entry: ConfigEntry) -> OptionsFlow:
+        """Hub options: auto-clear defaults per severity."""
+        return HubOptionsFlow()
 
     @classmethod
     @callback
@@ -83,6 +115,23 @@ class ClearableNotificationsConfigFlow(ConfigFlow, domain=DOMAIN):
     ) -> dict[str, type[ConfigSubentryFlow]]:
         """Notifications are managed as subentries of the hub."""
         return {SUBENTRY_NOTIFICATION: NotificationSubentryFlow}
+
+
+class HubOptionsFlow(OptionsFlow):
+    """Change the per-severity auto-clear defaults."""
+
+    async def async_step_init(
+        self, user_input: dict[str, Any] | None = None
+    ) -> ConfigFlowResult:
+        """Show and store the defaults."""
+        if user_input is not None:
+            return self.async_create_entry(data=_hub_options(user_input))
+        return self.async_show_form(
+            step_id="init",
+            data_schema=self.add_suggested_values_to_schema(
+                HUB_SCHEMA, self.config_entry.options
+            ),
+        )
 
 
 class NotificationSubentryFlow(ConfigSubentryFlow):

@@ -3,7 +3,17 @@
     "step": {
       "user": {
         "title": "Clearable Notifications",
-        "description": "This creates a notifications hub. Afterwards, use **Add notification** on the integration page to create each notification you want to raise from automations."
+        "description": "This creates a notifications hub. Choose how long notifications stay active by default; each notification can override this. Afterwards, use **Add notification** on the integration page.",
+        "data": {
+          "auto_clear_info": "Auto-clear info after",
+          "auto_clear_warning": "Auto-clear warnings after",
+          "auto_clear_critical": "Auto-clear critical after"
+        },
+        "data_description": {
+          "auto_clear_info": "Default for info notifications. Leave empty to never auto-clear.",
+          "auto_clear_warning": "Default for warnings. Leave empty to never auto-clear.",
+          "auto_clear_critical": "Default for critical notifications. Leave empty to never auto-clear."
+        }
       }
     },
     "abort": {
@@ -35,7 +45,7 @@
             "title": "Optional. Supports templates.",
             "message": "Supports templates, e.g. `Freezer at {{ states('sensor.freezer_temperature') }} °C`. Variables passed to the action are available too.",
             "icon": "Optional. Defaults to an icon matching the severity.",
-            "auto_clear_after": "Optional. Clears automatically this long after the last activation, useful as a heartbeat.",
+            "auto_clear_after": "Optional. Clears automatically this long after the last activation. Empty uses the hub default for the severity (set under Configure); 0 never auto-clears.",
             "persistent_notification": "Mirrors the notification to the sidebar bell. Dismissing it there acknowledges it."
           }
         },
@@ -56,7 +66,7 @@
             "title": "Optional. Supports templates.",
             "message": "Supports templates, e.g. `Freezer at {{ states('sensor.freezer_temperature') }} °C`. Variables passed to the action are available too.",
             "icon": "Optional. Defaults to an icon matching the severity.",
-            "auto_clear_after": "Optional. Clears automatically this long after the last activation, useful as a heartbeat.",
+            "auto_clear_after": "Optional. Clears automatically this long after the last activation. Empty uses the hub default for the severity (set under Configure); 0 never auto-clears.",
             "persistent_notification": "Mirrors the notification to the sidebar bell. Dismissing it there acknowledges it."
           }
         }
@@ -239,6 +249,24 @@
   "exceptions": {
     "template_error": {
       "message": "Could not render the {field} template of {entity_id}: {error}"
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "Auto-clear defaults",
+        "description": "Active notifications clear themselves this long after their last activation, unless the notification sets its own auto-clear time.",
+        "data": {
+          "auto_clear_info": "Auto-clear info after",
+          "auto_clear_warning": "Auto-clear warnings after",
+          "auto_clear_critical": "Auto-clear critical after"
+        },
+        "data_description": {
+          "auto_clear_info": "Default for info notifications. Leave empty to never auto-clear.",
+          "auto_clear_warning": "Default for warnings. Leave empty to never auto-clear.",
+          "auto_clear_critical": "Default for critical notifications. Leave empty to never auto-clear."
+        }
+      }
     }
   }
 }

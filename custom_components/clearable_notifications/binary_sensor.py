@@ -33,6 +33,7 @@ from .const import (
     ATTR_TITLE,
     ATTR_UPDATED_AT,
     CONF_AUTO_CLEAR_AFTER,
+    CONF_AUTO_CLEAR_DEFAULTS,
     CONF_ICON,
     CONF_MESSAGE,
     CONF_PERSISTENT_NOTIFICATION,
@@ -309,7 +310,12 @@ class ClearableNotificationEntity(RestoreEntity, BinarySensorEntity):
             ) from err
 
     def _auto_clear_delay(self) -> timedelta | None:
-        if not (raw := self._config.get(CONF_AUTO_CLEAR_AFTER)):
+        # The notification's own setting wins (an explicit 0 disables
+        # auto-clear); otherwise use the hub default for the current severity.
+        raw = self._config.get(CONF_AUTO_CLEAR_AFTER) or self._entry.options.get(
+            CONF_AUTO_CLEAR_DEFAULTS[self._severity]
+        )
+        if not raw:
             return None
         delay = cv.time_period(raw)
         return delay if delay.total_seconds() > 0 else None

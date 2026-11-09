@@ -22,6 +22,15 @@ SEVERITIES: Final = [SEVERITY_INFO, SEVERITY_WARNING, SEVERITY_CRITICAL]
 SEVERITY_RANK: Final = {severity: rank for rank, severity in enumerate(SEVERITIES, 1)}
 SEVERITY_NONE: Final = "none"
 
+# Hub options: default auto-clear delay per severity. A notification's own
+# auto_clear_after takes precedence (0 there means "never").
+CONF_AUTO_CLEAR_DEFAULTS: Final = {
+    severity: f"auto_clear_{severity}" for severity in SEVERITIES
+}
+DEFAULT_HUB_OPTIONS: Final = {
+    CONF_AUTO_CLEAR_DEFAULTS[SEVERITY_INFO]: {"hours": 1, "minutes": 0, "seconds": 0},
+}
+
 SEVERITY_ICONS: Final = {
     SEVERITY_INFO: "mdi:information",
     SEVERITY_WARNING: "mdi:alert",
