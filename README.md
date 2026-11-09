@@ -34,7 +34,7 @@ Requires Home Assistant 2025.10.0 or newer.
 
 ## Setup
 
-1. Go to **Settings > Devices & services > Add integration** and add **Clearable Notifications**. This creates one hub; only one is allowed.
+1. Go to **Settings > Devices & services > Add integration** and add **Clearable Notifications**. This creates one hub; only one is allowed. The form asks for the default auto-clear time per severity (info is prefilled with 1 hour; leave a field empty or at 0 to never auto-clear that severity). Change the defaults later with **Configure** on the integration page; Home Assistant reloads the integration and the new defaults apply from the next activation.
 2. On the integration page choose **Add notification** and fill in the form:
 
 | Field | Description |
@@ -44,7 +44,7 @@ Requires Home Assistant 2025.10.0 or newer.
 | Title | Optional. Supports templates. |
 | Message | Required. Supports templates, e.g. `Freezer at {{ states('sensor.freezer_temperature') }} °C`. Variables passed to the action are available too. |
 | Icon | Optional. Defaults to an icon matching the current severity. |
-| Auto-clear after | Optional. Clears the notification this long after its last activation. Useful as a heartbeat. |
+| Auto-clear after | Optional. Clears the notification this long after its last activation. Useful as a heartbeat. Overrides the hub defaults; leave empty to use the default for the severity of the current activation, or enter 0 to never auto-clear. |
 | Also show in the Home Assistant notification drawer | Mirrors the notification to the sidebar bell. |
 
 To change a notification later, open the integration page, use the pencil (reconfigure) menu on its entry and save. Home Assistant reloads the integration; the current state of each notification is kept. The entity ID does not change when you rename a notification, only its friendly name.
@@ -239,31 +239,60 @@ conditions:
 
 ## Card
 
-The integration serves and registers the card itself, so there is no dashboard resource to add. Add **Clearable Notifications** from the card picker, which includes a visual editor, or use YAML:
+The integration serves and registers the card itself, so there is no dashboard resource to add. Add **Clearable Notifications** from the card picker, which includes a visual editor, or use YAML. The recommended setup:
 
 ```yaml
 type: custom:clearable-notifications-card
+title: Benachrichtigung
+hide_when_empty: true
+```
+
+With `hide_when_empty` the heading disappears together with the notifications, so this one card can replace a separate heading card plus a conditional card.
+
+### Layouts
+
+`layout: large` (default) shows:
+
+- an optional heading with an icon (`title`, `icon`);
+- no card background: the card sits directly on the dashboard;
+- per notification, a large severity-tinted icon tile with a big title and message, plus the time and the auto-clear countdown;
+- a full-width read button below each unread notification. With `read_action: auto` (default) it clears info notifications and acknowledges warning and critical ones;
+- a **Mark all as read** button when two or more notifications are unread;
+- read notifications are dimmed and carry a "Read" marker.
+
+`layout: compact` is the previous list in a regular card, with acknowledge and clear icon buttons per notification.
+
+The card's text follows the Home Assistant language (English and German). Tapping a notification opens its more-info dialog. Notifications are sorted by severity, then unread first, then newest first.
+
+A fuller example:
+
+```yaml
+type: custom:clearable-notifications-card
+layout: large
 title: Notifications
+icon: mdi:bell-outline
 entities:
   - binary_sensor.freezer_too_warm
   - binary_sensor.laundry
 min_severity: info
+read_action: auto
 show_acknowledged: true
 show_cleared: false
-show_actions: true
-hide_when_empty: false
-empty_message: All clear
+hide_when_empty: true
 ```
 
 | Option | Default | Description |
 | --- | --- | --- |
-| `title` | `""` | Card title. With no title the header and active count are hidden; the "Acknowledge all" button still appears when needed. |
+| `layout` | `large` | `large` or `compact`. |
+| `title` | `""` | Heading. Without a title no heading is shown. |
+| `icon` | `mdi:bell-outline` | Icon next to the heading (large layout). |
 | `entities` | `[]` | Notifications to show. An empty list shows all notifications of this integration. |
 | `min_severity` | `info` | Hide notifications below this severity: `info`, `warning` or `critical`. |
-| `show_acknowledged` | `true` | Show active notifications that are already acknowledged. |
+| `read_action` | `auto` | What the read button does: `auto` (clear info, acknowledge warning and critical), `acknowledge` or `clear`. |
+| `read_icon` | `mdi:check` | Icon of the read button. |
+| `show_acknowledged` | `true` | Show active notifications that are already acknowledged (read). |
 | `show_cleared` | `false` | Also show recently cleared notifications under a "Recently cleared" heading (the last 5). |
-| `show_actions` | `true` | Show the acknowledge and clear buttons. |
-| `hide_when_empty` | `false` | Hide the whole card when there is nothing to show. |
-| `empty_message` | `All clear` | Text shown when nothing is active. |
-
-Notifications are sorted by severity, then unacknowledged first, then newest first. Tapping a notification opens its more-info dialog. When two or more notifications are unacknowledged and `show_actions` is on, an **Acknowledge all** button appears in the header.
+| `show_actions` | `true` | Show the read buttons (large) or the acknowledge and clear buttons (compact). |
+| `show_time` | `true` | Show the time of the notification. |
+| `hide_when_empty` | `false` | Hide the whole card, including the heading, when there is nothing to show. |
+| `empty_message` | `""` | Text shown when nothing is active. Empty uses the localized "No notifications". |
