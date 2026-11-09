@@ -22,7 +22,7 @@ Stateful, clearable notifications for Home Assistant: raise them from automation
 2. Extract it into `<config>/custom_components/clearable_notifications/`.
 3. Restart Home Assistant and add the integration as above.
 
-Requires Home Assistant 2025.6.0 or newer.
+Requires Home Assistant 2025.10.0 or newer.
 
 ## Screenshot
 
