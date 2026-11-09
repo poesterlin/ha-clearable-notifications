@@ -24,4 +24,246 @@ Stateful, clearable notifications for Home Assistant: raise them from automation
 
 Requires Home Assistant 2025.6.0 or newer.
 
-<!-- USAGE -->
+## Screenshot
+
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="assets/card-dark.png">
+  <source media="(prefers-color-scheme: light)" srcset="assets/card-light.png">
+  <img src="assets/card-light.png" width="480" alt="The Clearable Notifications card showing active notifications by severity">
+</picture>
+
+## Setup
+
+1. Go to **Settings > Devices & services > Add integration** and add **Clearable Notifications**. This creates one hub; only one is allowed.
+2. On the integration page choose **Add notification** and fill in the form:
+
+| Field | Description |
+| --- | --- |
+| Name | Required. Becomes the entity name, e.g. "Freezer too warm" gives `binary_sensor.freezer_too_warm`. |
+| Default severity | `info`, `warning` or `critical`. Can be overridden on each activation. |
+| Title | Optional. Supports templates. |
+| Message | Required. Supports templates, e.g. `Freezer at {{ states('sensor.freezer_temperature') }} °C`. Variables passed to the action are available too. |
+| Icon | Optional. Defaults to an icon matching the current severity. |
+| Auto-clear after | Optional. Clears the notification this long after its last activation. Useful as a heartbeat. |
+| Also show in the Home Assistant notification drawer | Mirrors the notification to the sidebar bell. |
+
+To change a notification later, open the integration page, use the pencil (reconfigure) menu on its entry and save. Home Assistant reloads the integration; the current state of each notification is kept. The entity ID does not change when you rename a notification, only its friendly name.
+
+## Entities
+
+### Notifications
+
+Each notification is a binary sensor, `binary_sensor.<name>`. It is `on` (shown as **Active**) while the notification is raised and `off` (**Clear**) otherwise. State is restored after a restart.
+
+| Attribute | Description |
+| --- | --- |
+| `severity` | `info`, `warning` or `critical`. |
+| `severity_rank` | 1, 2 or 3 for `info`, `warning`, `critical`. Handy for numeric comparisons. |
+| `title` | Rendered title, or `null`. |
+| `message` | Rendered message. |
+| `acknowledged` | `true` once someone has acknowledged the active notification. |
+| `activated_at` | When it last went from clear to active. Not changed by updates. |
+| `updated_at` | When it was last activated or updated. |
+| `cleared_at` | When it was last cleared. |
+| `acknowledged_at` | When it was acknowledged, or `null`. |
+| `auto_clear_at` | When it will clear itself, or `null`. |
+| `activation_count` | How often it went from clear to active. Updates of an active notification do not count. |
+| `notification_id` | Stable ID of the notification. The notification drawer mirror uses `clearable_notifications_<notification_id>`. |
+
+### Summary sensors
+
+Both belong to the "Clearable Notifications" device.
+
+| Entity | State | Attributes |
+| --- | --- | --- |
+| `sensor.clearable_notifications_active` | Number of active notifications. | `unacknowledged` (count), `info`, `warning`, `critical` (counts per severity), `notifications` (list of active notifications, most severe first, then newest first). Each item has `entity_id`, `name`, `title`, `message`, `severity`, `acknowledged`, `activated_at`. |
+| `sensor.clearable_notifications_highest_severity` | `none`, `info`, `warning` or `critical`. | `unacknowledged`: the highest severity among notifications that are not acknowledged yet (also `none` if there are none). |
+
+## Actions
+
+All four actions target `binary_sensor` entities of this integration. Use `entity_id: all` to apply an action to every notification.
+
+| Action | Fields | Description |
+| --- | --- | --- |
+| `clearable_notifications.activate` | `message`, `title`, `severity`, `variables` (all optional) | Raises the notification, or updates it if it is already active. |
+| `clearable_notifications.clear` | none | Clears the notification because its condition is gone. Does nothing if it is already clear. |
+| `clearable_notifications.acknowledge` | none | Marks an active notification as seen. Does nothing if it is clear. |
+| `clearable_notifications.set_active` | `active` (required), plus the fields of `activate` | Activates when `active` is true, clears when false. Meant for templates. |
+
+Field details:
+
+- `message` and `title` override the configured values. They are used as-is, not rendered as templates again, because automations already render their own templates.
+- `severity` overrides the default severity: `info`, `warning` or `critical`.
+- `variables` is a mapping available to the configured title and message templates, e.g. `variables: {temp: 3}` for `Freezer at {{ temp }} °C`.
+- If a configured template fails to render, the action fails with an error and the notification is not changed.
+
+### Acknowledging
+
+Acknowledging means "I have seen this". The notification stays active until it is cleared; only `acknowledged` changes. You can acknowledge from the card, with the `acknowledge` action, or by dismissing the mirrored notification in the sidebar.
+
+- Activating an already active notification again with the same or a lower severity keeps it acknowledged.
+- Activating it with a higher severity (escalation) resets `acknowledged` so it asks for attention again.
+- Clearing and activating it again also starts unacknowledged.
+
+### Events
+
+Every change fires a `clearable_notifications_event` event. The event data has `entity_id`, `type`, `severity`, `title` and `message`. `type` is one of `activated`, `updated` (activated again while active), `cleared` (by action or auto-clear) or `acknowledged`.
+
+## Automation examples
+
+Replace the entity IDs with your own.
+
+### Freezer too warm
+
+Raise the notification after 10 minutes above -12 °C and clear it when the freezer is below -15 °C. The notification's message is `Freezer at {{ temp }} °C`.
+
+```yaml
+automation:
+  - alias: Freezer notification
+    triggers:
+      - trigger: numeric_state
+        entity_id: sensor.freezer_temperature
+        above: -12
+        for: "00:10:00"
+        id: warm
+      - trigger: numeric_state
+        entity_id: sensor.freezer_temperature
+        below: -15
+        id: cold
+    actions:
+      - choose:
+          - conditions:
+              - condition: trigger
+                id: warm
+            sequence:
+              - action: clearable_notifications.activate
+                target:
+                  entity_id: binary_sensor.freezer_too_warm
+                data:
+                  severity: warning
+                  variables:
+                    temp: "{{ states('sensor.freezer_temperature') }}"
+          - conditions:
+              - condition: trigger
+                id: cold
+            sequence:
+              - action: clearable_notifications.clear
+                target:
+                  entity_id: binary_sensor.freezer_too_warm
+```
+
+### One automation with set_active
+
+`set_active` activates or clears depending on a template, so a single trigger is enough.
+
+```yaml
+automation:
+  - alias: Freezer notification (set_active)
+    triggers:
+      - trigger: state
+        entity_id: sensor.freezer_temperature
+    actions:
+      - action: clearable_notifications.set_active
+        target:
+          entity_id: binary_sensor.freezer_too_warm
+        data:
+          active: "{{ states('sensor.freezer_temperature') | float(-20) > -12 }}"
+          variables:
+            temp: "{{ states('sensor.freezer_temperature') }}"
+```
+
+### Heartbeat with auto-clear
+
+Give the notification an **Auto-clear after** of, say, 2 minutes. Re-activating it every minute keeps it alive; when the source stops (the automation, or Home Assistant itself), it clears on its own.
+
+```yaml
+automation:
+  - alias: Garage door open heartbeat
+    triggers:
+      - trigger: time_pattern
+        minutes: "/1"
+    conditions:
+      - condition: state
+        entity_id: binary_sensor.garage_door
+        state: "on"
+    actions:
+      - action: clearable_notifications.activate
+        target:
+          entity_id: binary_sensor.garage_door_open
+```
+
+### React to an acknowledgement
+
+```yaml
+automation:
+  - alias: Stop alarm siren when acknowledged
+    triggers:
+      - trigger: event
+        event_type: clearable_notifications_event
+        event_data:
+          type: acknowledged
+          entity_id: binary_sensor.freezer_too_warm
+    actions:
+      - action: switch.turn_off
+        target:
+          entity_id: switch.siren
+```
+
+Leave out `entity_id` under `event_data` to react to every notification.
+
+## Templates
+
+```jinja
+# Number of active notifications
+{{ states('sensor.clearable_notifications_active') }}
+
+# All active notifications (list of dictionaries)
+{{ state_attr('sensor.clearable_notifications_active', 'notifications') }}
+
+# Names of unacknowledged ones
+{{ state_attr('sensor.clearable_notifications_active', 'notifications')
+   | rejectattr('acknowledged') | map(attribute='name') | list }}
+
+# Is anything critical and not yet acknowledged?
+{{ is_state_attr('sensor.clearable_notifications_highest_severity', 'unacknowledged', 'critical') }}
+```
+
+As a condition:
+
+```yaml
+conditions:
+  - condition: state
+    entity_id: sensor.clearable_notifications_highest_severity
+    state: critical
+```
+
+## Card
+
+The integration serves and registers the card itself, so there is no dashboard resource to add. Add **Clearable Notifications** from the card picker, which includes a visual editor, or use YAML:
+
+```yaml
+type: custom:clearable-notifications-card
+title: Notifications
+entities:
+  - binary_sensor.freezer_too_warm
+  - binary_sensor.laundry
+min_severity: info
+show_acknowledged: true
+show_cleared: false
+show_actions: true
+hide_when_empty: false
+empty_message: All clear
+```
+
+| Option | Default | Description |
+| --- | --- | --- |
+| `title` | `""` | Card title. With no title the header, including the active count and the "Acknowledge all" button, is not shown. |
+| `entities` | `[]` | Notifications to show. An empty list shows all notifications of this integration. |
+| `min_severity` | `info` | Hide notifications below this severity: `info`, `warning` or `critical`. |
+| `show_acknowledged` | `true` | Show active notifications that are already acknowledged. |
+| `show_cleared` | `false` | Also show recently cleared notifications under a "Recently cleared" heading (the last 5). |
+| `show_actions` | `true` | Show the acknowledge and clear buttons. |
+| `hide_when_empty` | `false` | Hide the whole card when there is nothing to show. |
+| `empty_message` | `All clear` | Text shown when nothing is active. |
+
+Notifications are sorted by severity, then unacknowledged first, then newest first. Tapping a notification opens its more-info dialog. When two or more notifications are unacknowledged and the card has a title and `show_actions` is on, an **Acknowledge all** button appears in the header.
