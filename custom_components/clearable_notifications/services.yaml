@@ -1,0 +1,71 @@
+activate:
+  target:
+    entity:
+      integration: clearable_notifications
+      domain: binary_sensor
+  fields:
+    message:
+      example: "The washing machine is done."
+      selector:
+        text:
+          multiline: true
+    title:
+      example: "Laundry"
+      selector:
+        text:
+    severity:
+      selector:
+        select:
+          options:
+            - info
+            - warning
+            - critical
+          translation_key: severity
+    variables:
+      advanced: true
+      example: '{"room": "Kitchen"}'
+      selector:
+        object:
+
+clear:
+  target:
+    entity:
+      integration: clearable_notifications
+      domain: binary_sensor
+
+acknowledge:
+  target:
+    entity:
+      integration: clearable_notifications
+      domain: binary_sensor
+
+set_active:
+  target:
+    entity:
+      integration: clearable_notifications
+      domain: binary_sensor
+  fields:
+    active:
+      required: true
+      example: "{{ states('sensor.freezer_temperature') | float > -12 }}"
+      selector:
+        boolean:
+    message:
+      selector:
+        text:
+          multiline: true
+    title:
+      selector:
+        text:
+    severity:
+      selector:
+        select:
+          options:
+            - info
+            - warning
+            - critical
+          translation_key: severity
+    variables:
+      advanced: true
+      selector:
+        object:

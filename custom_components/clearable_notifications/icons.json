@@ -1,0 +1,27 @@
+{
+  "entity": {
+    "binary_sensor": {
+      "notification": {
+        "default": "mdi:bell-check-outline",
+        "state": { "on": "mdi:bell-ring" }
+      }
+    },
+    "sensor": {
+      "active": { "default": "mdi:bell-badge" },
+      "highest_severity": {
+        "default": "mdi:bell-check-outline",
+        "state": {
+          "info": "mdi:information",
+          "warning": "mdi:alert",
+          "critical": "mdi:alert-octagon"
+        }
+      }
+    }
+  },
+  "services": {
+    "activate": { "service": "mdi:bell-ring" },
+    "clear": { "service": "mdi:bell-off" },
+    "acknowledge": { "service": "mdi:check" },
+    "set_active": { "service": "mdi:bell-cog" }
+  }
+}

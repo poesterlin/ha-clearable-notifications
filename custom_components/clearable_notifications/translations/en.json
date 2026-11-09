@@ -1,0 +1,244 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "Clearable Notifications",
+        "description": "This creates a notifications hub. Afterwards, use **Add notification** on the integration page to create each notification you want to raise from automations."
+      }
+    },
+    "abort": {
+      "single_instance_allowed": "Clearable Notifications is already set up. Add notifications from its integration page."
+    }
+  },
+  "config_subentries": {
+    "notification": {
+      "entry_type": "Notification",
+      "initiate_flow": {
+        "user": "Add notification"
+      },
+      "step": {
+        "user": {
+          "title": "Add notification",
+          "description": "The notification becomes a binary sensor that is on while active. Raise it with the **Activate** action and remove it with **Clear** when the condition no longer holds.",
+          "data": {
+            "name": "Name",
+            "severity": "Default severity",
+            "title": "Title",
+            "message": "Message",
+            "icon": "Icon",
+            "auto_clear_after": "Auto-clear after",
+            "persistent_notification": "Also show in the Home Assistant notification drawer"
+          },
+          "data_description": {
+            "name": "Used for the entity name, e.g. \"Freezer too warm\".",
+            "severity": "Can be overridden per activation.",
+            "title": "Optional. Supports templates.",
+            "message": "Supports templates, e.g. `Freezer at {{ states('sensor.freezer_temperature') }} °C`. Variables passed to the action are available too.",
+            "icon": "Optional. Defaults to an icon matching the severity.",
+            "auto_clear_after": "Optional. Clears automatically this long after the last activation, useful as a heartbeat.",
+            "persistent_notification": "Mirrors the notification to the sidebar bell. Dismissing it there acknowledges it."
+          }
+        },
+        "reconfigure": {
+          "title": "Edit {name}",
+          "data": {
+            "name": "Name",
+            "severity": "Default severity",
+            "title": "Title",
+            "message": "Message",
+            "icon": "Icon",
+            "auto_clear_after": "Auto-clear after",
+            "persistent_notification": "Also show in the Home Assistant notification drawer"
+          },
+          "data_description": {
+            "name": "Used for the entity name, e.g. \"Freezer too warm\".",
+            "severity": "Can be overridden per activation.",
+            "title": "Optional. Supports templates.",
+            "message": "Supports templates, e.g. `Freezer at {{ states('sensor.freezer_temperature') }} °C`. Variables passed to the action are available too.",
+            "icon": "Optional. Defaults to an icon matching the severity.",
+            "auto_clear_after": "Optional. Clears automatically this long after the last activation, useful as a heartbeat.",
+            "persistent_notification": "Mirrors the notification to the sidebar bell. Dismissing it there acknowledges it."
+          }
+        }
+      },
+      "error": {
+        "name_required": "Enter a name.",
+        "invalid_template": "This template is not valid."
+      },
+      "abort": {
+        "reconfigure_successful": "Notification updated."
+      }
+    }
+  },
+  "entity": {
+    "binary_sensor": {
+      "notification": {
+        "state": {
+          "on": "Active",
+          "off": "Clear"
+        },
+        "state_attributes": {
+          "severity": {
+            "name": "Severity",
+            "state": {
+              "info": "Info",
+              "warning": "Warning",
+              "critical": "Critical"
+            }
+          },
+          "severity_rank": {
+            "name": "Severity rank"
+          },
+          "title": {
+            "name": "Title"
+          },
+          "message": {
+            "name": "Message"
+          },
+          "acknowledged": {
+            "name": "Acknowledged",
+            "state": {
+              "true": "Yes",
+              "false": "No"
+            }
+          },
+          "activated_at": {
+            "name": "Activated"
+          },
+          "updated_at": {
+            "name": "Updated"
+          },
+          "cleared_at": {
+            "name": "Cleared"
+          },
+          "acknowledged_at": {
+            "name": "Acknowledged at"
+          },
+          "auto_clear_at": {
+            "name": "Auto-clears"
+          },
+          "activation_count": {
+            "name": "Activations"
+          },
+          "notification_id": {
+            "name": "Notification ID"
+          }
+        }
+      }
+    },
+    "sensor": {
+      "active": {
+        "name": "Active",
+        "state_attributes": {
+          "unacknowledged": {
+            "name": "Unacknowledged"
+          },
+          "info": {
+            "name": "Info"
+          },
+          "warning": {
+            "name": "Warning"
+          },
+          "critical": {
+            "name": "Critical"
+          },
+          "notifications": {
+            "name": "Notifications"
+          }
+        }
+      },
+      "highest_severity": {
+        "name": "Highest severity",
+        "state": {
+          "none": "None",
+          "info": "Info",
+          "warning": "Warning",
+          "critical": "Critical"
+        },
+        "state_attributes": {
+          "unacknowledged": {
+            "name": "Highest unacknowledged",
+            "state": {
+              "none": "None",
+              "info": "Info",
+              "warning": "Warning",
+              "critical": "Critical"
+            }
+          }
+        }
+      }
+    }
+  },
+  "selector": {
+    "severity": {
+      "options": {
+        "info": "Info",
+        "warning": "Warning",
+        "critical": "Critical"
+      }
+    }
+  },
+  "services": {
+    "activate": {
+      "name": "Activate notification",
+      "description": "Raises a notification, or updates it if it is already active.",
+      "fields": {
+        "message": {
+          "name": "Message",
+          "description": "Overrides the configured message."
+        },
+        "title": {
+          "name": "Title",
+          "description": "Overrides the configured title."
+        },
+        "severity": {
+          "name": "Severity",
+          "description": "Overrides the configured severity. Raising the severity of an acknowledged notification makes it unacknowledged again."
+        },
+        "variables": {
+          "name": "Variables",
+          "description": "Variables available in the configured title and message templates."
+        }
+      }
+    },
+    "clear": {
+      "name": "Clear notification",
+      "description": "Clears a notification because its condition is no longer met."
+    },
+    "acknowledge": {
+      "name": "Acknowledge notification",
+      "description": "Marks an active notification as seen. It stays active until it is cleared."
+    },
+    "set_active": {
+      "name": "Set notification active",
+      "description": "Activates the notification when Active is true and clears it when false. Use a template to drive it from a condition.",
+      "fields": {
+        "active": {
+          "name": "Active",
+          "description": "Whether the notification should be active."
+        },
+        "message": {
+          "name": "Message",
+          "description": "Overrides the configured message."
+        },
+        "title": {
+          "name": "Title",
+          "description": "Overrides the configured title."
+        },
+        "severity": {
+          "name": "Severity",
+          "description": "Overrides the configured severity. Raising the severity of an acknowledged notification makes it unacknowledged again."
+        },
+        "variables": {
+          "name": "Variables",
+          "description": "Variables available in the configured title and message templates."
+        }
+      }
+    }
+  },
+  "exceptions": {
+    "template_error": {
+      "message": "Could not render the {field} template of {entity_id}: {error}"
+    }
+  }
+}
