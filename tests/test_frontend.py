@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import json
 from pathlib import Path
 
 from homeassistant.components.frontend import DATA_EXTRA_MODULE_URL
@@ -19,7 +20,8 @@ CARD_FILE = (
 
 
 async def test_card_url_registered(hass: HomeAssistant, hub) -> None:
-    assert f"{CARD_URL_BASE}/{CARD_FILENAME}?v=0.1.0" in hass.data[DATA_EXTRA_MODULE_URL].urls
+    version = json.loads((CARD_FILE.parents[1] / "manifest.json").read_text())["version"]
+    assert f"{CARD_URL_BASE}/{CARD_FILENAME}?v={version}" in hass.data[DATA_EXTRA_MODULE_URL].urls
 
 
 async def test_card_is_served(hass: HomeAssistant, hub, hass_client) -> None:

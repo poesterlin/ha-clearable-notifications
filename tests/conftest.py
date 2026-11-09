@@ -53,6 +53,7 @@ def setup_hub(hass: HomeAssistant) -> Callable[..., Any]:
 
     async def _setup(
         subentries: list[ConfigSubentryData] | None = None,
+        options: dict[str, Any] | None = None,
     ) -> MockConfigEntry:
         if subentries is None:
             subentries = [
@@ -63,6 +64,7 @@ def setup_hub(hass: HomeAssistant) -> Callable[..., Any]:
             domain=DOMAIN,
             title="Notifications",
             data={},
+            options=options or {},
             subentries_data=subentries,
         )
         entry.add_to_hass(hass)

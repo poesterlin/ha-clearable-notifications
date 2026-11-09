@@ -272,6 +272,85 @@ async def test_auto_clear(
     assert state.attributes["auto_clear_at"] is None
 
 
+HOUR = {"hours": 1, "minutes": 0, "seconds": 0}
+MIN5 = {"hours": 0, "minutes": 5, "seconds": 0}
+ZERO = {"hours": 0, "minutes": 0, "seconds": 0}
+
+
+def _auto_clear_in(hass: HomeAssistant, entity_id: str, delta: timedelta | None) -> None:
+    expected = None if delta is None else (dt_util.utcnow() + delta).isoformat()
+    assert hass.states.get(entity_id).attributes["auto_clear_at"] == expected
+
+
+async def test_hub_info_default_applies(
+    hass: HomeAssistant, setup_hub, freezer: FrozenDateTimeFactory
+) -> None:
+    await setup_hub(options={"auto_clear_info": HOUR})
+    await call(hass, "activate", LAUNDRY_E)
+    _auto_clear_in(hass, LAUNDRY_E, timedelta(hours=1))
+    # Warning has no default.
+    await call(hass, "activate", FREEZER_E)
+    _auto_clear_in(hass, FREEZER_E, None)
+
+
+async def test_hub_default_clears_entity(
+    hass: HomeAssistant, setup_hub, freezer: FrozenDateTimeFactory
+) -> None:
+    await setup_hub(options={"auto_clear_info": HOUR})
+    await call(hass, "activate", LAUNDRY_E)
+    freezer.tick(timedelta(hours=1, seconds=1))
+    async_fire_time_changed(hass)
+    await hass.async_block_till_done()
+    assert hass.states.get(LAUNDRY_E).state == "off"
+
+
+async def test_no_hub_options_never_auto_clears(hass: HomeAssistant, setup_hub) -> None:
+    await setup_hub(options={})
+    await call(hass, "activate", LAUNDRY_E)
+    _auto_clear_in(hass, LAUNDRY_E, None)
+
+
+async def test_severity_override_uses_that_severity_default(
+    hass: HomeAssistant, setup_hub, freezer: FrozenDateTimeFactory
+) -> None:
+    await setup_hub(options={"auto_clear_info": HOUR, "auto_clear_warning": MIN5})
+    # Info notification activated as warning: warning default.
+    await call(hass, "activate", LAUNDRY_E, severity="warning")
+    _auto_clear_in(hass, LAUNDRY_E, timedelta(minutes=5))
+    # Re-activating as info switches back to the info default.
+    await call(hass, "activate", LAUNDRY_E, severity="info")
+    _auto_clear_in(hass, LAUNDRY_E, timedelta(hours=1))
+    # Warning notification activated as critical: no critical default, so none.
+    await call(hass, "activate", FREEZER_E, severity="critical")
+    _auto_clear_in(hass, FREEZER_E, None)
+    # Warning notification activated as info: info default.
+    await call(hass, "clear", FREEZER_E)
+    await call(hass, "activate", FREEZER_E, severity="info")
+    _auto_clear_in(hass, FREEZER_E, timedelta(hours=1))
+
+
+async def test_own_auto_clear_beats_hub_default(
+    hass: HomeAssistant, setup_hub, freezer: FrozenDateTimeFactory
+) -> None:
+    await setup_hub(
+        [make_subentry("sub_hb", "Heartbeat", {"message": "m", "auto_clear_after": MIN5})],
+        options={"auto_clear_info": HOUR},
+    )
+    await call(hass, "activate", "binary_sensor.heartbeat")
+    _auto_clear_in(hass, "binary_sensor.heartbeat", timedelta(minutes=5))
+
+
+async def test_own_zero_auto_clear_means_never(
+    hass: HomeAssistant, setup_hub, freezer: FrozenDateTimeFactory
+) -> None:
+    await setup_hub(
+        [make_subentry("sub_hb", "Heartbeat", {"message": "m", "auto_clear_after": ZERO})],
+        options={"auto_clear_info": HOUR},
+    )
+    await call(hass, "activate", "binary_sensor.heartbeat")
+    _auto_clear_in(hass, "binary_sensor.heartbeat", None)
+
+
 async def test_reactivation_restarts_auto_clear(
     hass: HomeAssistant, setup_hub, freezer: FrozenDateTimeFactory
 ) -> None:
