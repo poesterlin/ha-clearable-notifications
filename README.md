@@ -296,3 +296,7 @@ hide_when_empty: true
 | `show_time` | `true` | Show the time of the notification. |
 | `hide_when_empty` | `false` | Hide the whole card, including the heading, when there is nothing to show. |
 | `empty_message` | `""` | Text shown when nothing is active. Empty uses the localized "No notifications". |
+
+## License
+
+[MIT](LICENSE)
