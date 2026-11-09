@@ -181,17 +181,19 @@
 
       const unacked = active.filter((i) => !i.acknowledged);
       const top = active[0]?.severity;
-      const header = cfg.title
-        ? `<div class="header">
+      const ackAll = cfg.show_actions && unacked.length > 1
+        ? `<button class="text-btn" data-action="ack-all" title="Acknowledge all">
+             <ha-icon icon="mdi:check-all"></ha-icon><span>Acknowledge all</span>
+           </button>`
+        : "";
+      // Without a title the header only appears when it has a button to show.
+      const header = cfg.title || ackAll
+        ? `<div class="header${cfg.title ? "" : " bare"}">
             <div class="heading">
-              <span class="name">${esc(cfg.title)}</span>
-              ${active.length ? `<span class="count" style="--sev:${SEVERITY_COLOR[top]}">${active.length}</span>` : ""}
+              ${cfg.title ? `<span class="name">${esc(cfg.title)}</span>` : ""}
+              ${cfg.title && active.length ? `<span class="count" style="--sev:${SEVERITY_COLOR[top]}">${active.length}</span>` : ""}
             </div>
-            ${cfg.show_actions && unacked.length > 1
-              ? `<button class="text-btn" data-action="ack-all" title="Acknowledge all">
-                   <ha-icon icon="mdi:check-all"></ha-icon><span>Acknowledge all</span>
-                 </button>`
-              : ""}
+            ${ackAll}
           </div>`
         : "";
 
@@ -302,6 +304,7 @@
     :host { display: block; }
     ha-card { overflow: hidden; }
     .header { display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 12px 16px 4px; }
+    .header.bare { padding: 8px 8px 0; }
     .heading { display: flex; align-items: center; gap: 8px; min-width: 0; }
     .name { font-size: var(--ha-card-header-font-size, 1.25rem); font-weight: 500; color: var(--ha-card-header-color, var(--primary-text-color)); }
     .count { min-width: 22px; height: 22px; padding: 0 7px; box-sizing: border-box; border-radius: 11px; background: var(--sev); color: #fff;

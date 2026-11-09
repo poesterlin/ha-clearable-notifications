@@ -257,7 +257,7 @@ empty_message: All clear
 
 | Option | Default | Description |
 | --- | --- | --- |
-| `title` | `""` | Card title. With no title the header, including the active count and the "Acknowledge all" button, is not shown. |
+| `title` | `""` | Card title. With no title the header and active count are hidden; the "Acknowledge all" button still appears when needed. |
 | `entities` | `[]` | Notifications to show. An empty list shows all notifications of this integration. |
 | `min_severity` | `info` | Hide notifications below this severity: `info`, `warning` or `critical`. |
 | `show_acknowledged` | `true` | Show active notifications that are already acknowledged. |
@@ -266,4 +266,4 @@ empty_message: All clear
 | `hide_when_empty` | `false` | Hide the whole card when there is nothing to show. |
 | `empty_message` | `All clear` | Text shown when nothing is active. |
 
-Notifications are sorted by severity, then unacknowledged first, then newest first. Tapping a notification opens its more-info dialog. When two or more notifications are unacknowledged and the card has a title and `show_actions` is on, an **Acknowledge all** button appears in the header.
+Notifications are sorted by severity, then unacknowledged first, then newest first. Tapping a notification opens its more-info dialog. When two or more notifications are unacknowledged and `show_actions` is on, an **Acknowledge all** button appears in the header.
