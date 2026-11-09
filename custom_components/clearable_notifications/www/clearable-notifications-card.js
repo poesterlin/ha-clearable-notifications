@@ -40,7 +40,7 @@
     const seconds = Math.round((new Date(iso).getTime() - Date.now()) / 1000);
     const rtf = new Intl.RelativeTimeFormat(lang || "en", { numeric: "auto" });
     const abs = Math.abs(seconds);
-    if (abs < 45) return rtf.format(0, "second");
+    if (abs < 45) return seconds <= 0 && String(lang).startsWith("en") ? "just now" : rtf.format(0, "second");
     if (abs < 3600) return rtf.format(Math.round(seconds / 60), "minute");
     if (abs < 86400) return rtf.format(Math.round(seconds / 3600), "hour");
     return rtf.format(Math.round(seconds / 86400), "day");
