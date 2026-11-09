@@ -1,0 +1,272 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "Clearable Notifications",
+        "description": "Dies erstellt einen Benachrichtigungs-Hub. Lege fest, wie lange Benachrichtigungen standardmäßig aktiv bleiben; jede Benachrichtigung kann das überschreiben. Verwende danach **Benachrichtigung hinzufügen** auf der Integrationsseite.",
+        "data": {
+          "auto_clear_info": "Info automatisch entfernen nach",
+          "auto_clear_warning": "Warnungen automatisch entfernen nach",
+          "auto_clear_critical": "Kritische automatisch entfernen nach"
+        },
+        "data_description": {
+          "auto_clear_info": "Standard für Info-Benachrichtigungen. Leer lassen, um nie automatisch zu entfernen.",
+          "auto_clear_warning": "Standard für Warnungen. Leer lassen, um nie automatisch zu entfernen.",
+          "auto_clear_critical": "Standard für kritische Benachrichtigungen. Leer lassen, um nie automatisch zu entfernen."
+        }
+      }
+    },
+    "abort": {
+      "single_instance_allowed": "Clearable Notifications ist bereits eingerichtet. Füge Benachrichtigungen auf der Integrationsseite hinzu."
+    }
+  },
+  "config_subentries": {
+    "notification": {
+      "entry_type": "Benachrichtigung",
+      "initiate_flow": {
+        "user": "Benachrichtigung hinzufügen"
+      },
+      "step": {
+        "user": {
+          "title": "Benachrichtigung hinzufügen",
+          "description": "Die Benachrichtigung wird zu einem Binärsensor, der eingeschaltet ist, solange sie aktiv ist. Löse sie mit der Aktion **Aktivieren** aus und entferne sie mit **Entfernen**, sobald die Bedingung nicht mehr zutrifft.",
+          "data": {
+            "name": "Name",
+            "severity": "Standard-Schweregrad",
+            "title": "Titel",
+            "message": "Nachricht",
+            "icon": "Symbol",
+            "auto_clear_after": "Automatisch entfernen nach",
+            "persistent_notification": "Auch im Benachrichtigungsbereich von Home Assistant anzeigen"
+          },
+          "data_description": {
+            "name": "Wird für den Entitätsnamen verwendet, z. B. \"Gefrierschrank zu warm\".",
+            "severity": "Kann bei jeder Aktivierung überschrieben werden.",
+            "title": "Optional. Unterstützt Templates.",
+            "message": "Unterstützt Templates, z. B. `Freezer at {{ states('sensor.freezer_temperature') }} °C`. Der Aktion übergebene Variablen sind ebenfalls verfügbar.",
+            "icon": "Optional. Standardmäßig ein zum Schweregrad passendes Symbol.",
+            "auto_clear_after": "Optional. Wird automatisch entfernt, so lange nach der letzten Aktivierung. Leer verwendet den Hub-Standard für den Schweregrad (unter Konfigurieren festgelegt); 0 entfernt nie automatisch.",
+            "persistent_notification": "Spiegelt die Benachrichtigung in die Glocke der Seitenleiste. Verwerfen dort bestätigt sie."
+          }
+        },
+        "reconfigure": {
+          "title": "{name} bearbeiten",
+          "data": {
+            "name": "Name",
+            "severity": "Standard-Schweregrad",
+            "title": "Titel",
+            "message": "Nachricht",
+            "icon": "Symbol",
+            "auto_clear_after": "Automatisch entfernen nach",
+            "persistent_notification": "Auch im Benachrichtigungsbereich von Home Assistant anzeigen"
+          },
+          "data_description": {
+            "name": "Wird für den Entitätsnamen verwendet, z. B. \"Gefrierschrank zu warm\".",
+            "severity": "Kann bei jeder Aktivierung überschrieben werden.",
+            "title": "Optional. Unterstützt Templates.",
+            "message": "Unterstützt Templates, z. B. `Freezer at {{ states('sensor.freezer_temperature') }} °C`. Der Aktion übergebene Variablen sind ebenfalls verfügbar.",
+            "icon": "Optional. Standardmäßig ein zum Schweregrad passendes Symbol.",
+            "auto_clear_after": "Optional. Wird automatisch entfernt, so lange nach der letzten Aktivierung. Leer verwendet den Hub-Standard für den Schweregrad (unter Konfigurieren festgelegt); 0 entfernt nie automatisch.",
+            "persistent_notification": "Spiegelt die Benachrichtigung in die Glocke der Seitenleiste. Verwerfen dort bestätigt sie."
+          }
+        }
+      },
+      "error": {
+        "name_required": "Gib einen Namen ein.",
+        "invalid_template": "Dieses Template ist ungültig."
+      },
+      "abort": {
+        "reconfigure_successful": "Benachrichtigung aktualisiert."
+      }
+    }
+  },
+  "entity": {
+    "binary_sensor": {
+      "notification": {
+        "state": {
+          "on": "Aktiv",
+          "off": "Inaktiv"
+        },
+        "state_attributes": {
+          "severity": {
+            "name": "Schweregrad",
+            "state": {
+              "info": "Info",
+              "warning": "Warnung",
+              "critical": "Kritisch"
+            }
+          },
+          "severity_rank": {
+            "name": "Schweregrad-Rang"
+          },
+          "title": {
+            "name": "Titel"
+          },
+          "message": {
+            "name": "Nachricht"
+          },
+          "acknowledged": {
+            "name": "Bestätigt",
+            "state": {
+              "true": "Ja",
+              "false": "Nein"
+            }
+          },
+          "activated_at": {
+            "name": "Aktiviert"
+          },
+          "updated_at": {
+            "name": "Aktualisiert"
+          },
+          "cleared_at": {
+            "name": "Entfernt"
+          },
+          "acknowledged_at": {
+            "name": "Bestätigt um"
+          },
+          "auto_clear_at": {
+            "name": "Wird entfernt"
+          },
+          "activation_count": {
+            "name": "Aktivierungen"
+          },
+          "notification_id": {
+            "name": "Benachrichtigungs-ID"
+          }
+        }
+      }
+    },
+    "sensor": {
+      "active": {
+        "name": "Aktiv",
+        "state_attributes": {
+          "unacknowledged": {
+            "name": "Unbestätigt"
+          },
+          "info": {
+            "name": "Info"
+          },
+          "warning": {
+            "name": "Warnung"
+          },
+          "critical": {
+            "name": "Kritisch"
+          },
+          "notifications": {
+            "name": "Benachrichtigungen"
+          }
+        }
+      },
+      "highest_severity": {
+        "name": "Höchster Schweregrad",
+        "state": {
+          "none": "Keiner",
+          "info": "Info",
+          "warning": "Warnung",
+          "critical": "Kritisch"
+        },
+        "state_attributes": {
+          "unacknowledged": {
+            "name": "Höchster unbestätigter",
+            "state": {
+              "none": "Keiner",
+              "info": "Info",
+              "warning": "Warnung",
+              "critical": "Kritisch"
+            }
+          }
+        }
+      }
+    }
+  },
+  "selector": {
+    "severity": {
+      "options": {
+        "info": "Info",
+        "warning": "Warnung",
+        "critical": "Kritisch"
+      }
+    }
+  },
+  "services": {
+    "activate": {
+      "name": "Benachrichtigung aktivieren",
+      "description": "Löst eine Benachrichtigung aus oder aktualisiert sie, falls sie bereits aktiv ist.",
+      "fields": {
+        "message": {
+          "name": "Nachricht",
+          "description": "Überschreibt die konfigurierte Nachricht."
+        },
+        "title": {
+          "name": "Titel",
+          "description": "Überschreibt den konfigurierten Titel."
+        },
+        "severity": {
+          "name": "Schweregrad",
+          "description": "Überschreibt den konfigurierten Schweregrad. Erhöht sich der Schweregrad einer bestätigten Benachrichtigung, ist sie wieder unbestätigt."
+        },
+        "variables": {
+          "name": "Variablen",
+          "description": "Variablen, die in den konfigurierten Templates für Titel und Nachricht verfügbar sind."
+        }
+      }
+    },
+    "clear": {
+      "name": "Benachrichtigung entfernen",
+      "description": "Entfernt eine Benachrichtigung, weil ihre Bedingung nicht mehr zutrifft."
+    },
+    "acknowledge": {
+      "name": "Benachrichtigung bestätigen",
+      "description": "Markiert eine aktive Benachrichtigung als gesehen. Sie bleibt aktiv, bis sie entfernt wird."
+    },
+    "set_active": {
+      "name": "Benachrichtigung aktiv setzen",
+      "description": "Aktiviert die Benachrichtigung, wenn Aktiv wahr ist, und entfernt sie, wenn es falsch ist. Mit einem Template lässt sich das aus einer Bedingung steuern.",
+      "fields": {
+        "active": {
+          "name": "Aktiv",
+          "description": "Ob die Benachrichtigung aktiv sein soll."
+        },
+        "message": {
+          "name": "Nachricht",
+          "description": "Überschreibt die konfigurierte Nachricht."
+        },
+        "title": {
+          "name": "Titel",
+          "description": "Überschreibt den konfigurierten Titel."
+        },
+        "severity": {
+          "name": "Schweregrad",
+          "description": "Überschreibt den konfigurierten Schweregrad. Erhöht sich der Schweregrad einer bestätigten Benachrichtigung, ist sie wieder unbestätigt."
+        },
+        "variables": {
+          "name": "Variablen",
+          "description": "Variablen, die in den konfigurierten Templates für Titel und Nachricht verfügbar sind."
+        }
+      }
+    }
+  },
+  "exceptions": {
+    "template_error": {
+      "message": "Das Template {field} von {entity_id} konnte nicht gerendert werden: {error}"
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "Standards für automatisches Entfernen",
+        "description": "Aktive Benachrichtigungen werden so lange nach ihrer letzten Aktivierung automatisch entfernt, sofern die Benachrichtigung keine eigene Zeit festlegt.",
+        "data": {
+          "auto_clear_info": "Info automatisch entfernen nach",
+          "auto_clear_warning": "Warnungen automatisch entfernen nach",
+          "auto_clear_critical": "Kritische automatisch entfernen nach"
+        },
+        "data_description": {
+          "auto_clear_info": "Standard für Info-Benachrichtigungen. Leer lassen, um nie automatisch zu entfernen.",
+          "auto_clear_warning": "Standard für Warnungen. Leer lassen, um nie automatisch zu entfernen.",
+          "auto_clear_critical": "Standard für kritische Benachrichtigungen. Leer lassen, um nie automatisch zu entfernen."
+        }
+      }
+    }
+  }
+}
