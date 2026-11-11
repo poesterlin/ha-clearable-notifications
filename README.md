@@ -87,6 +87,22 @@ Both belong to the "Clearable Notifications" device.
 | `sensor.clearable_notifications_active` | Number of active notifications. | `unacknowledged` (count), `info`, `warning`, `critical` (counts per severity), `notifications` (list of active notifications, most severe first, then newest first). Each item has `entity_id`, `name`, `title`, `message`, `severity`, `acknowledged`, `activated_at`. |
 | `sensor.clearable_notifications_highest_severity` | `none`, `info`, `warning` or `critical`. | `unacknowledged`: the highest severity among notifications that are not acknowledged yet (also `none` if there are none). |
 
+### Current notification (for displays)
+
+These belong to the "Clearable Notifications" device too and are meant for wall displays and overlays. The *current* notification is the most severe, newest active notification that is not acknowledged yet.
+
+| Entity | State |
+| --- | --- |
+| `sensor.clearable_notifications_current_title` | Title of the current notification, or its name if it has no title. |
+| `sensor.clearable_notifications_current_message` | Message of the current notification. |
+| `sensor.clearable_notifications_current_severity` | `info`, `warning` or `critical`. |
+| `button.clearable_notifications_dismiss_current` | Pressing it acknowledges the current notification. |
+
+- All three sensors are an empty string when there is nothing to show, so a display can show its overlay whenever the value is not empty.
+- Pressing the button acknowledges the shown notification. The next unacknowledged one moves up, or the sensors become empty. The notification stays active (and on the card, marked as read) until it is cleared.
+- Raising the severity of an acknowledged notification makes it current again.
+- Each sensor has an `entity_id` attribute with the notification's binary sensor, and a `text` attribute with the full value (states are cut to 255 characters).
+
 ## Actions
 
 All four actions target `binary_sensor` entities of this integration. Use `entity_id: all` to apply an action to every notification.

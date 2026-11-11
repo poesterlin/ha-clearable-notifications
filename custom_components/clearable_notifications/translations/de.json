@@ -192,6 +192,49 @@
             "name": "Vollständiger Text"
           }
         }
+      },
+      "current_title": {
+        "name": "Aktueller Titel",
+        "state_attributes": {
+          "text": {
+            "name": "Vollständiger Text"
+          },
+          "entity_id": {
+            "name": "Benachrichtigung"
+          }
+        }
+      },
+      "current_message": {
+        "name": "Aktuelle Nachricht",
+        "state_attributes": {
+          "text": {
+            "name": "Vollständiger Text"
+          },
+          "entity_id": {
+            "name": "Benachrichtigung"
+          }
+        }
+      },
+      "current_severity": {
+        "name": "Aktueller Schweregrad",
+        "state": {
+          "info": "Info",
+          "warning": "Warnung",
+          "critical": "Kritisch"
+        },
+        "state_attributes": {
+          "text": {
+            "name": "Vollständiger Text"
+          },
+          "entity_id": {
+            "name": "Benachrichtigung"
+          }
+        }
+      }
+    },
+    "button": {
+      "dismiss_current": {
+        "name": "Aktuelle Meldung verwerfen"
       }
     }
   },

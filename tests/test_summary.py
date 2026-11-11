@@ -167,3 +167,67 @@ async def test_text_sensor_long_message(hass: HomeAssistant, hub) -> None:
     assert len(state.state) == 255
     assert state.state.endswith("…")
     assert state.attributes["text"] == long
+
+
+CUR_TITLE = "sensor.clearable_notifications_current_title"
+CUR_MESSAGE = "sensor.clearable_notifications_current_message"
+CUR_SEVERITY = "sensor.clearable_notifications_current_severity"
+DISMISS = "button.clearable_notifications_dismiss_current"
+
+
+def current(hass: HomeAssistant) -> tuple[str, str, str]:
+    return (
+        hass.states.get(CUR_TITLE).state,
+        hass.states.get(CUR_MESSAGE).state,
+        hass.states.get(CUR_SEVERITY).state,
+    )
+
+
+async def press_dismiss(hass: HomeAssistant) -> None:
+    await hass.services.async_call(
+        "button", "press", {"entity_id": DISMISS}, blocking=True
+    )
+
+
+async def test_current_notification_and_dismiss(
+    hass: HomeAssistant, hub, freezer: FrozenDateTimeFactory
+) -> None:
+    assert current(hass) == ("", "", "")
+
+    await call(hass, "activate", "binary_sensor.laundry")  # info, no title
+    assert current(hass) == ("Laundry", "Laundry is done.", "info")
+    assert (
+        hass.states.get(CUR_MESSAGE).attributes["entity_id"] == "binary_sensor.laundry"
+    )
+
+    freezer.tick(timedelta(seconds=5))
+    await call(
+        hass,
+        "activate",
+        "binary_sensor.freezer_too_warm",
+        variables={"temp": 1, "room": "garage"},
+    )  # warning wins
+    assert current(hass) == ("Freezer garage", "Freezer at 1 C", "warning")
+
+    # Dismissing acknowledges the shown one; the next one moves up.
+    await press_dismiss(hass)
+    assert hass.states.get("binary_sensor.freezer_too_warm").attributes["acknowledged"]
+    assert hass.states.get("binary_sensor.freezer_too_warm").state == "on"
+    assert current(hass) == ("Laundry", "Laundry is done.", "info")
+
+    await press_dismiss(hass)
+    assert current(hass) == ("", "", "")
+    assert hass.states.get(CUR_MESSAGE).attributes["entity_id"] is None
+
+    # Nothing to dismiss: no error.
+    await press_dismiss(hass)
+
+    # Escalating an acknowledged notification shows it again.
+    await call(hass, "activate", "binary_sensor.laundry", severity="critical")
+    assert current(hass)[2] == "critical"
+
+
+async def test_current_cleared_by_clear(hass: HomeAssistant, hub) -> None:
+    await call(hass, "activate", "binary_sensor.laundry")
+    await call(hass, "clear", "binary_sensor.laundry")
+    assert current(hass) == ("", "", "")

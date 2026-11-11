@@ -192,6 +192,49 @@
             "name": "Full text"
           }
         }
+      },
+      "current_title": {
+        "name": "Current title",
+        "state_attributes": {
+          "text": {
+            "name": "Full text"
+          },
+          "entity_id": {
+            "name": "Notification"
+          }
+        }
+      },
+      "current_message": {
+        "name": "Current message",
+        "state_attributes": {
+          "text": {
+            "name": "Full text"
+          },
+          "entity_id": {
+            "name": "Notification"
+          }
+        }
+      },
+      "current_severity": {
+        "name": "Current severity",
+        "state": {
+          "info": "Info",
+          "warning": "Warning",
+          "critical": "Critical"
+        },
+        "state_attributes": {
+          "text": {
+            "name": "Full text"
+          },
+          "entity_id": {
+            "name": "Notification"
+          }
+        }
+      }
+    },
+    "button": {
+      "dismiss_current": {
+        "name": "Dismiss current"
       }
     }
   },

@@ -6,9 +6,22 @@
         "state": { "on": "mdi:bell-ring" }
       }
     },
+    "button": {
+      "dismiss_current": { "default": "mdi:bell-cancel" }
+    },
     "sensor": {
       "active": { "default": "mdi:bell-badge" },
       "notification_title": { "default": "mdi:format-title" },
+      "current_title": { "default": "mdi:format-title" },
+      "current_message": { "default": "mdi:message-text" },
+      "current_severity": {
+        "default": "mdi:bell-check-outline",
+        "state": {
+          "info": "mdi:information",
+          "warning": "mdi:alert",
+          "critical": "mdi:alert-octagon"
+        }
+      },
       "notification_message": { "default": "mdi:message-text" },
       "highest_severity": {
         "default": "mdi:bell-check-outline",
