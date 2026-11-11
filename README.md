@@ -70,6 +70,14 @@ Each notification is a binary sensor, `binary_sensor.<name>`. It is `on` (shown 
 | `activation_count` | How often it went from clear to active. Updates of an active notification do not count. |
 | `notification_id` | Stable ID of the notification. The notification drawer mirror uses `clearable_notifications_<notification_id>`. |
 
+### Title and message sensors
+
+Each notification also gets two read-only text sensors, `sensor.<name>_title` and `sensor.<name>_message`, whose state is the rendered title and message. Use them wherever an entity is easier than an attribute, e.g. `{{ states('sensor.freezer_too_warm_message') }}` or a state trigger on the text.
+
+- They keep the last text after the notification is cleared, like the `title` and `message` attributes.
+- The title sensor is `unknown` when the notification has no title.
+- States are limited to 255 characters, so longer text is cut off with `…`. The `text` attribute always holds the full value.
+
 ### Summary sensors
 
 Both belong to the "Clearable Notifications" device.

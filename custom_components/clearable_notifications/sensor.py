@@ -1,4 +1,4 @@
-"""Summary sensors across all notifications of the hub."""
+"""Summary sensors across the hub, plus title/message text sensors per notification."""
 
 from __future__ import annotations
 
@@ -9,6 +9,7 @@ from homeassistant.const import STATE_ON
 from homeassistant.core import HomeAssistant, callback
 from homeassistant.helpers.device_registry import DeviceEntryType, DeviceInfo
 from homeassistant.helpers.dispatcher import async_dispatcher_connect
+from homeassistant.config_entries import ConfigSubentry
 from homeassistant.helpers.entity_platform import AddConfigEntryEntitiesCallback
 
 from .const import (
@@ -21,6 +22,7 @@ from .const import (
     SEVERITIES,
     SEVERITY_NONE,
     SEVERITY_RANK,
+    SUBENTRY_NOTIFICATION,
     signal_updated,
 )
 
@@ -29,16 +31,30 @@ if TYPE_CHECKING:
 
 PARALLEL_UPDATES = 0
 
+# Home Assistant rejects states longer than 255 characters.
+MAX_STATE_LENGTH = 255
+ATTR_TEXT = "text"
+
 
 async def async_setup_entry(
     hass: HomeAssistant,
     entry: NotificationsConfigEntry,
     async_add_entities: AddConfigEntryEntitiesCallback,
 ) -> None:
-    """Set up the hub-wide summary sensors."""
+    """Set up the hub-wide summary sensors and the per-notification text sensors."""
     async_add_entities(
         [ActiveNotificationsSensor(entry), HighestSeveritySensor(entry)]
     )
+    for subentry in entry.subentries.values():
+        if subentry.subentry_type != SUBENTRY_NOTIFICATION:
+            continue
+        async_add_entities(
+            [
+                NotificationTextSensor(entry, subentry, ATTR_TITLE),
+                NotificationTextSensor(entry, subentry, ATTR_MESSAGE),
+            ],
+            config_subentry_id=subentry.subentry_id,
+        )
 
 
 class _SummarySensor(SensorEntity):
@@ -129,3 +145,47 @@ class HighestSeveritySensor(_SummarySensor):
         self._attr_extra_state_attributes = {
             "unacknowledged": highest([i for i in active if not i[ATTR_ACKNOWLEDGED]]),
         }
+
+
+class NotificationTextSensor(SensorEntity):
+    """Read-only title or message of one notification.
+
+    Keeps the last text after the notification is cleared, like the
+    attributes of the binary sensor. The state is cut to 255 characters;
+    the `text` attribute always holds the full value.
+    """
+
+    _attr_has_entity_name = True
+    _attr_should_poll = False
+
+    def __init__(
+        self, entry: NotificationsConfigEntry, subentry: ConfigSubentry, field: str
+    ) -> None:
+        self._entry = entry
+        self._notification_id = subentry.subentry_id
+        self._field = field
+        self._attr_unique_id = f"{subentry.subentry_id}_{field}"
+        self._attr_translation_key = f"notification_{field}"
+        self._attr_translation_placeholders = {"name": subentry.title}
+
+    async def async_added_to_hass(self) -> None:
+        self.async_on_remove(
+            async_dispatcher_connect(
+                self.hass, signal_updated(self._entry.entry_id), self._async_refresh
+            )
+        )
+        self._async_refresh()
+
+    @callback
+    def _async_refresh(self) -> None:
+        text: str | None = None
+        for notification in self._entry.runtime_data.notifications.values():
+            if notification.notification_id == self._notification_id:
+                text = getattr(notification, self._field)
+                break
+        if text is not None and len(text) > MAX_STATE_LENGTH:
+            self._attr_native_value = text[: MAX_STATE_LENGTH - 1] + "…"
+        else:
+            self._attr_native_value = text
+        self._attr_extra_state_attributes = {ATTR_TEXT: text}
+        self.async_write_ha_state()

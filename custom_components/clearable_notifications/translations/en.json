@@ -176,6 +176,22 @@
             }
           }
         }
+      },
+      "notification_title": {
+        "name": "{name} title",
+        "state_attributes": {
+          "text": {
+            "name": "Full text"
+          }
+        }
+      },
+      "notification_message": {
+        "name": "{name} message",
+        "state_attributes": {
+          "text": {
+            "name": "Full text"
+          }
+        }
       }
     }
   },

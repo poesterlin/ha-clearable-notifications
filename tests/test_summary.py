@@ -126,3 +126,44 @@ async def test_highest_severity(hass: HomeAssistant, hub) -> None:
     state = hass.states.get(HIGHEST)
     assert state.state == "critical"
     assert state.attributes["unacknowledged"] == "critical"
+
+
+FREEZER_TITLE = "sensor.freezer_too_warm_title"
+FREEZER_MESSAGE = "sensor.freezer_too_warm_message"
+LAUNDRY_TITLE = "sensor.laundry_title"
+
+
+async def test_text_sensors(hass: HomeAssistant, hub) -> None:
+    assert hass.states.get(FREEZER_TITLE).state == "unknown"
+    assert hass.states.get(FREEZER_MESSAGE).state == "unknown"
+
+    await call(
+        hass,
+        "activate",
+        "binary_sensor.freezer_too_warm",
+        variables={"temp": -9.5, "room": "garage"},
+    )
+    title = hass.states.get(FREEZER_TITLE)
+    assert title.state == "Freezer garage"
+    assert title.attributes["text"] == "Freezer garage"
+    assert title.attributes["friendly_name"] == "Freezer too warm title"
+    message = hass.states.get(FREEZER_MESSAGE)
+    assert message.state == "Freezer at -9.5 C"
+    assert message.attributes["friendly_name"] == "Freezer too warm message"
+
+    # No configured title: stays unknown.
+    await call(hass, "activate", "binary_sensor.laundry")
+    assert hass.states.get(LAUNDRY_TITLE).state == "unknown"
+
+    # The last text is kept after clearing.
+    await call(hass, "clear", "binary_sensor.freezer_too_warm")
+    assert hass.states.get(FREEZER_MESSAGE).state == "Freezer at -9.5 C"
+
+
+async def test_text_sensor_long_message(hass: HomeAssistant, hub) -> None:
+    long = "x" * 400
+    await call(hass, "activate", "binary_sensor.freezer_too_warm", message=long)
+    state = hass.states.get(FREEZER_MESSAGE)
+    assert len(state.state) == 255
+    assert state.state.endswith("…")
+    assert state.attributes["text"] == long

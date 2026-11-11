@@ -127,6 +127,21 @@ class ClearableNotificationEntity(RestoreEntity, BinarySensorEntity):
         return self._severity
 
     @property
+    def notification_id(self) -> str:
+        """Stable ID of the notification (its subentry ID)."""
+        return self._notification_id
+
+    @property
+    def title(self) -> str | None:
+        """Last rendered title (kept after clearing)."""
+        return self._title
+
+    @property
+    def message(self) -> str | None:
+        """Last rendered message (kept after clearing)."""
+        return self._message
+
+    @property
     def extra_state_attributes(self) -> dict[str, Any]:
         """Expose everything a card, template or automation needs."""
         return {

@@ -8,6 +8,8 @@
     },
     "sensor": {
       "active": { "default": "mdi:bell-badge" },
+      "notification_title": { "default": "mdi:format-title" },
+      "notification_message": { "default": "mdi:message-text" },
       "highest_severity": {
         "default": "mdi:bell-check-outline",
         "state": {
